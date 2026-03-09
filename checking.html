@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Result – Phish Shield</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 50%, #f8fafc 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .dark-mode { background: linear-gradient(135deg, #0f172a 0%, #1a1f35 50%, #0f172a 100%); color: #f1f5f9; }
+        .dark-mode .text-gray-600 { color: #94a3b8; }
+        .dark-mode .text-gray-800 { color: #f1f5f9; }
+        .analyzing-dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
+        @keyframes dots {
+            0%, 25% { content: '.'; }
+            50% { content: '..'; }
+            75%, 100% { content: '...'; }
+        }
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #2563eb, transparent);
+            animation: scan 2.5s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.6);
+        }
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .analysis-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .dark-mode .analysis-card { background: #1e293b; border-color: #334155; }
+        .bounce-dot {
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-radius: 50%;
+            animation: bounce 1.2s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .result-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .dark-mode .result-card { background: #1e293b; border-color: #334155; }
+        .spam-indicator {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .dark-mode .spam-indicator { background: #334155; }
+        .spam-score {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+            border-radius: 6px;
+            transition: width 1s ease-out;
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+        }
+        .result-status {
+            font-size: 1.125rem;
+            font-weight: 600;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .status-spam {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #b91c1c;
+            border: 2px solid #fecaca;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
+        }
+        .dark-mode .status-spam { background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%); color: #fca5a5; border-color: #7f1d1d; }
+        .status-legitimate {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: #166534;
+            border: 2px solid #86efac;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.15);
+        }
+        .dark-mode .status-legitimate { background: linear-gradient(135deg, #052e16 0%, #14532d 100%); color: #86efac; border-color: #14532d; }
+        .status-info {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: #0c4a6e;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.15);
+        }
+        .dark-mode .status-info { background: linear-gradient(135deg, #082f49 0%, #0c3d66 100%); color: #38bdf8; border-color: #0c3d66; }
+        .confidence-level { font-size: 1.125rem; font-weight: 600; color: #2563eb; }
+        .dark-mode .confidence-level { color: #60a5fa; }
+        .security-measures {
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #2563eb;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .dark-mode .security-measures { 
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-color: #3b82f6; 
+        }
+        .details-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .dark-mode .details-section { 
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-color: #334155;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            font-weight: 600;
+            padding: 14px 24px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:focus { outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2), 0 8px 25px rgba(37, 99, 235, 0.4); }
+        .header-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 10px;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+        .header-link:hover { color: #0f172a; background: #f1f5f9; }
+        .dark-mode .header-link { color: #94a3b8; }
+        .dark-mode .header-link:hover { color: #f1f5f9; background: #334155; }
+        .highlight { animation: highlight 1s ease; }
+        @keyframes highlight {
+            0% { background-color: rgba(37, 99, 235, 0.08); }
+            100% { background-color: transparent; }
+        }
+        .url-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 3px solid #e2e8f0;
+            margin-bottom: 8px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .url-item:hover {
+            background: #f0f4f8;
+            border-left-color: #2563eb;
+        }
+        .dark-mode .url-item {
+            background: #0f172a;
+            border-color: #334155;
+        }
+        .dark-mode .url-item:hover {
+            background: #1e293b;
+            border-left-color: #3b82f6;
+        }
+        .url-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .url-safe {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        .url-suspicious {
+            background: #fecaca;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .dark-mode .url-safe { background: #052e16; color: #86efac; border-color: #14532d; }
+        .dark-mode .url-suspicious { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
+        .urls-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .dark-mode .urls-section {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-color: #334155;
+        }
+        .urls-section h3 {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dark-mode .urls-section h3 { color: #f1f5f9; }
+        .alert-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 2000;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            animation: slideInRight 0.4s ease-out;
+            backdrop-filter: blur(8px);
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(400px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(400px); }
+        }
+        .alert-toast.removing { animation: slideOutRight 0.3s ease-in forwards; }
+        .alert-success {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        .alert-error {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fca5a5;
+            color: #b91c1c;
+        }
+        .alert-warning {
+            background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+            border: 1px solid #fcd34d;
+            color: #92400e;
+        }
+        .dark-mode .alert-toast {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div id="alertContainer" style="position: fixed; top: 0; right: 0; z-index: 2000; pointer-events: none;"></div>
+    <button type="button" class="fixed top-5 right-5 z-[1000] w-11 h-11 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 flex items-center justify-center shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" id="themeToggle" aria-label="Toggle dark mode">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+    </button>
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 dark:border-slate-700 dark:bg-slate-900/95">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="flex items-center gap-2 text-slate-900 dark:text-white font-semibold text-lg">
+                    <svg class="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Phish Shield
+                </a>
+                <a href="/" class="header-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to analyzer
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+        <div class="text-center mb-10 fade-in">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Security analysis</h1>
+            <p class="text-gray-600 dark:text-gray-400">We're analyzing your email content</p>
+        </div>
+
+        <div id="analyzing" class="relative analysis-card p-8 md:p-10 mb-8">
+            <div class="scan-line"></div>
+            <div class="text-center">
+                <i class="fas fa-shield-alt text-blue-500 text-5xl mb-4"></i>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Analyzing content<span class="analyzing-dots"></span></h2>
+                <div class="flex justify-center gap-2 mt-6 mb-6">
+                    <div class="bounce-dot" style="animation-delay: 0s"></div>
+                    <div class="bounce-dot" style="animation-delay: 0.15s"></div>
+                    <div class="bounce-dot" style="animation-delay: 0.3s"></div>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Scanning for phishing indicators and threats</p>
+            </div>
+        </div>
+
+        <div id="result" class="hidden result-card fade-in" role="status">
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-1">Result</h2>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Security assessment</p>
+            </div>
+
+            <div class="spam-indicator mb-2">
+                <div id="spamScore" class="spam-score"></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-500 mb-6">
+                <span>Low risk</span>
+                <span>High risk</span>
+            </div>
+
+            <div id="status" class="result-status mb-4"></div>
+            <div id="statusMessage" class="text-center text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300"></div>
+            <div id="confidence" class="confidence-level text-center mb-6"></div>
+
+            <div class="security-measures mb-6">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Recommendations</h3>
+                <p id="recommendations" class="text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line"></p>
+            </div>
+
+            <div id="urlsSection" class="urls-section hidden">
+                <h3><i class="fas fa-link"></i>Links detected</h3>
+                <div id="urlsList"></div>
+            </div>
+
+            <div class="details-section">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-3 text-sm">Details</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400">Threat level</span>
+                        <span id="threatLevel" class="font-medium">—</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400">Processing time</span>
+                        <span id="processingTime" class="font-medium">—</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400">Confidence</span>
+                        <span id="analysisConfidence" class="font-medium">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button id="analyzeAnother" class="btn-primary">
+                    <i class="fas fa-sync-alt mr-2"></i>Analyze another email
+                </button>
+            </div>
+        </div>
+
+        <p class="text-center text-gray-500 dark:text-gray-500 text-sm mt-8">This usually takes a few seconds.</p>
+    </div>
+
+    <script>
+        // URL Detection
+        const urlDetector = {
+            urlRegex: /(https?:\/\/[^\s]+)/gi,
+            suspiciousPatterns: [
+                /bit\.ly|tinyurl|shortened|short\.link/i,
+                /bit\.ly|goo\.gl|ow\.ly/i,
+                /account|verify|confirm|login|secure|update|urgent|click/i,
+                /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,
+                /[a-z0-9]{32,}/i
+            ],
+            extractUrls(text) {
+                const urls = [];
+                const matches = text.match(this.urlRegex);
+                if (matches) {
+                    matches.forEach(url => {
+                        if (!urls.includes(url)) {
+                            urls.push(url);
+                        }
+                    });
+                }
+                return urls;
+            },
+            isSuspicious(url) {
+                return this.suspiciousPatterns.some(pattern => pattern.test(url));
+            },
+            analyzeUrls(text) {
+                const urls = this.extractUrls(text);
+                return urls.map(url => ({
+                    url,
+                    suspicious: this.isSuspicious(url)
+                }));
+            }
+        };
+
+        // Alert Toast Manager
+        const alertManager = {
+            container: document.getElementById('alertContainer'),
+            show(message, type = 'info', duration = 3000) {
+                const alert = document.createElement('div');
+                alert.className = `alert-toast alert-${type}`;
+                
+                const icons = {
+                    success: 'fas fa-check-circle',
+                    error: 'fas fa-exclamation-circle',
+                    warning: 'fas fa-exclamation-triangle'
+                };
+                
+                alert.innerHTML = `
+                    <i class="${icons[type] || 'fas fa-info-circle'}"></i>
+                    <span>${message}</span>
+                `;
+                
+                this.container.appendChild(alert);
+                alert.style.pointerEvents = 'auto';
+                
+                setTimeout(() => {
+                    alert.classList.add('removing');
+                    setTimeout(() => alert.remove(), 300);
+                }, duration);
+                
+                return alert;
+            },
+            success(message, duration = 2500) { this.show(message, 'success', duration); },
+            error(message, duration = 3500) { this.show(message, 'error', duration); },
+            warning(message, duration = 3000) { this.show(message, 'warning', duration); }
+        };
+
+        // Sound effect generator
+        const soundManager = {
+            audioContext: null,
+            init() {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            beep(freq = 800, duration = 150, volume = 0.3) {
+                this.init();
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(this.audioContext.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(volume, this.audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration / 1000);
+                osc.start(this.audioContext.currentTime);
+                osc.stop(this.audioContext.currentTime + duration / 1000);
+            },
+            notify() { this.beep(600, 120, 0.2); }, // Short notification beep
+            success() { 
+                this.beep(800, 100, 0.2);
+                setTimeout(() => this.beep(1000, 100, 0.2), 120);
+            }, // Double beep for success
+            warning() { 
+                this.beep(500, 150, 0.25);
+                setTimeout(() => this.beep(500, 150, 0.25), 170);
+            } // Double warning beep
+        };
+
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        });
+
+        var emailText = localStorage.getItem('emailToCheck');
+        var prefetchedResult = localStorage.getItem('analysisResult');
+        var startTime = Date.now();
+
+        function displayResult(result, processingTime) {
+            document.getElementById('analyzing').classList.add('hidden');
+
+            var resultDiv = document.getElementById('result');
+            var spamScore = document.getElementById('spamScore');
+            var statusDiv = document.getElementById('status');
+            var statusMsg = document.getElementById('statusMessage');
+            var confidence = document.getElementById('confidence');
+            var recommendations = document.getElementById('recommendations');
+            var threatLevel = document.getElementById('threatLevel');
+            var procTime = document.getElementById('processingTime');
+            var analysisConf = document.getElementById('analysisConfidence');
+
+            var score = Math.round(result.confidence * 100);
+            spamScore.style.width = score + '%';
+
+            // Detect and display URLs
+            var urls = urlDetector.analyzeUrls(emailText);
+            var urlsSection = document.getElementById('urlsSection');
+            var urlsList = document.getElementById('urlsList');
+
+            if (urls.length > 0) {
+                urlsList.innerHTML = '';
+                urls.forEach(item => {
+                    const urlEl = document.createElement('div');
+                    urlEl.className = 'url-item';
+                    const badgeClass = item.suspicious ? 'url-suspicious' : 'url-safe';
+                    const badgeText = item.suspicious ? '⚠️ Suspicious' : '✓ Safe';
+                    urlEl.innerHTML = `
+                        <span class="url-badge ${badgeClass}">${badgeText}</span>
+                        <span>${item.url.length > 70 ? item.url.substring(0, 70) + '...' : item.url}</span>
+                    `;
+                    urlsList.appendChild(urlEl);
+                });
+                urlsSection.classList.remove('hidden');
+            } else {
+                urlsSection.classList.add('hidden');
+            }
+
+            if (result.label === 'spam') {
+                statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>🔴 Potentially malicious email';
+                statusDiv.className = 'result-status status-spam';
+                statusMsg.innerHTML = '<i class="fas fa-shield-alt mr-2" style="color:#dc2626;"></i>This email shows signs of being phishing or malicious';
+                statusMsg.className = 'text-center text-lg font-semibold mb-4 text-red-700 dark:text-red-400';
+                threatLevel.textContent = 'High';
+                threatLevel.className = 'font-medium text-red-600 dark:text-red-400';
+                soundManager.warning();
+                alertManager.warning('🔴 WARNING: Email detected as potentially malicious', 4000);
+            } else {
+                statusDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i>🟢 Legitimate email';
+                statusDiv.className = 'result-status status-legitimate';
+                statusMsg.innerHTML = '<i class="fas fa-heart mr-2" style="color:#16a34a;"></i>This email appears safe and legitimate';
+                statusMsg.className = 'text-center text-lg font-semibold mb-4 text-green-700 dark:text-green-400';
+                threatLevel.textContent = 'Low';
+                threatLevel.className = 'font-medium text-green-600 dark:text-green-400';
+                soundManager.success();
+                alertManager.success('🟢 SUCCESS: Email is safe and legitimate', 3000);
+            }
+
+            confidence.textContent = 'Confidence: ' + score + '%';
+            procTime.textContent = processingTime + 's';
+            analysisConf.textContent = score + '%';
+            recommendations.textContent = result.label === 'spam'
+                ? '• Do not interact with this email\n• Delete it and report if appropriate\n• Block the sender if possible'
+                : '• Email appears safe\n• Stay cautious of unexpected links\n• Verify sender if unsure';
+
+            resultDiv.classList.remove('hidden');
+            resultDiv.classList.add('highlight');
+        }
+
+        async function performAnalysis() {
+            try {
+                var startTime = Date.now();
+                var response = await fetch('/predict', {
+                    method: 'POST',
+                    body: new URLSearchParams({ email: emailText }),
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
+                if (!response.ok) throw new Error('Analysis failed');
+                var result = await response.json();
+                var processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                displayResult(result, processingTime);
+            } catch (e) {
+                console.error(e);
+                window.location.href = '/';
+            }
+        }
+
+        document.getElementById('analyzeAnother').addEventListener('click', function() {
+            localStorage.removeItem('analysisResult');
+            window.location.href = '/';
+        });
+
+        if (prefetchedResult) {
+            try {
+                var result = JSON.parse(prefetchedResult);
+                localStorage.removeItem('analysisResult');
+                setTimeout(function() { displayResult(result, '0.00'); }, 1500);
+            } catch (e) {
+                setTimeout(performAnalysis, 2000);
+            }
+        } else if (emailText) {
+            setTimeout(performAnalysis, 2000);
+        } else {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

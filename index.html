@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phish Shield – AI-Powered Email Security</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 50%, #f8fafc 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .header-scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in { animation: slideIn 0.5s ease-out; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .card:hover { 
+            box-shadow: 0 12px 32px rgba(0,0,0,0.1); 
+            border-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        textarea {
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            border-radius: 12px;
+            resize: vertical;
+            border: 2px solid #e2e8f0;
+            background: #fafbfc;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1), 0 4px 20px rgba(37, 99, 235, 0.15);
+            background: #ffffff;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 14px 24px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:focus { outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2), 0 8px 25px rgba(37, 99, 235, 0.4); }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 2px solid #e2e8f0;
+            font-weight: 500;
+            border-radius: 12px;
+            padding: 14px 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .btn-secondary:hover { 
+            background: #f0f4f8;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        .btn-secondary:focus { outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+        .error-card {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            color: #b91c1c;
+            animation: slideIn 0.3s ease-out;
+        }
+        .success-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            color: #166534;
+            animation: slideIn 0.3s ease-out;
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+        .theme-toggle:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .theme-toggle:focus { outline: none; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35); }
+        .dark-mode { background: #0f172a; color: #f1f5f9; }
+        .dark-mode .card {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .dark-mode .card:hover { 
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+        .dark-mode textarea {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+        .dark-mode textarea:focus { border-color: #3b82f6; }
+        .dark-mode .text-gray-800 { color: #f1f5f9; }
+        .dark-mode .text-gray-600 { color: #94a3b8; }
+        .dark-mode .text-gray-700 { color: #cbd5e1; }
+        .dark-mode .text-gray-500 { color: #64748b; }
+        #dropZone {
+            transition: all 0.3s ease;
+        }
+        #dropZone:hover {
+            border-color: #2563eb;
+            background: #f0f7ff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+        .dark-mode .theme-toggle { background: #1e293b; border-color: #334155; }
+        .dark-mode .theme-toggle:hover { background: #334155; }
+        .stats-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stats-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            border-color: #2563eb;
+        }
+        .dark-mode .stats-card { background: #1e293b; border-color: #334155; }
+        .stats-number { font-size: 1.75rem; font-weight: 700; color: #2563eb; }
+        .dark-mode .stats-number { color: #60a5fa; }
+        .nav-link {
+            color: #64748b;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        .nav-link:hover { color: #0f172a; }
+        .dark-mode .nav-link { color: #94a3b8; }
+        .dark-mode .nav-link:hover { color: #f1f5f9; }
+        .feature-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover { 
+            box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+            border-color: #2563eb;
+            transform: translateY(-4px);
+        }
+        .dark-mode .feature-card { background: #1e293b; border-color: #334155; }
+        .feature-icon { width: 48px; height: 48px; margin: 0 auto 16px; color: #2563eb; }
+        .dark-mode .feature-icon { color: #60a5fa; }
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 2.5rem;
+        }
+        .dark-mode .section-title { color: #f1f5f9; }
+        .footer {
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            padding: 32px 0;
+            margin-top: 64px;
+        }
+        .dark-mode .footer { background: #0f172a; border-color: #334155; }
+        .input-group { position: relative; margin-bottom: 1.5rem; }
+        .input-group i {
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            color: #64748b;
+        }
+        .dark-mode .input-group i { color: #94a3b8; }
+        .input-group textarea { padding: 16px 16px 16px 48px; }
+        .tab-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active { background: #2563eb; color: white; }
+        .tab-btn:not(.active) { background: #f1f5f9; color: #64748b; }
+        .tab-btn:not(.active):hover { background: #e2e8f0; color: #475569; }
+        .dark-mode .tab-btn:not(.active) { background: #334155; color: #94a3b8; }
+        .dark-mode .tab-btn:not(.active):hover { background: #475569; color: #f1f5f9; }
+        .tab-btn:focus { outline: none; }
+        .tab-btn.active:focus { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4); }
+        @media (prefers-reduced-motion: reduce) {
+            .fade-in { animation: none; }
+        }
+        .alert-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 2000;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            animation: slideInRight 0.4s ease-out;
+            backdrop-filter: blur(8px);
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(400px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(400px); }
+        }
+        .alert-toast.removing { animation: slideOutRight 0.3s ease-in forwards; }
+        .alert-success {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        .alert-error {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fca5a5;
+            color: #b91c1c;
+        }
+        .alert-warning {
+            background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+            border: 1px solid #fcd34d;
+            color: #92400e;
+        }
+        .alert-info {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #38bdf8;
+            color: #0c4a6e;
+        }
+        .dark-mode .alert-toast {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div id="alertContainer" style="position: fixed; top: 0; right: 0; z-index: 2000; pointer-events: none;"></div>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+    </button>
+
+    <header id="header" class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 dark:border-slate-700 dark:bg-slate-900/95 transition-shadow">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="flex items-center gap-2 text-slate-900 dark:text-white font-semibold text-lg">
+                    <svg class="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Phish Shield
+                </a>
+                <nav class="flex items-center gap-6">
+                    <a href="#features" class="nav-link hidden sm:inline">Features</a>
+                    <a href="#about" class="nav-link hidden sm:inline">How it works</a>
+                    <a href="#analyze" class="tab-btn active text-white text-sm py-2 px-4">Analyze email</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-16">
+        <!-- Hero -->
+        <section class="text-center mb-16 md:mb-20">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Protect your inbox from phishing</h1>
+            <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Check emails and attachments in seconds with AI. No data stored.</p>
+        </section>
+
+        <!-- Stats strip -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-16">
+            <div class="stats-card">
+                <div class="stats-number">98%</div>
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Accuracy</h3>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number">0.2s</div>
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Avg. response</h3>
+            </div>
+            <div class="stats-card">
+                <div class="stats-number">Private</div>
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Nothing stored</h3>
+            </div>
+        </section>
+
+        <!-- Main analyzer card -->
+        <section class="card p-6 md:p-8 mb-16" id="analyze">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Check an email</h2>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-6">Paste the email body or upload a file. We'll analyze it for phishing.</p>
+
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button type="button" id="tabPaste" class="tab-btn active">Paste text</button>
+                <button type="button" id="tabUpload" class="tab-btn">Upload file</button>
+                <button type="button" id="tabUrl" class="tab-btn">Check URL</button>
+            </div>
+
+            <div id="pasteArea" class="input-group">
+                <i class="fas fa-envelope"></i>
+                <textarea id="email" rows="6" class="w-full py-4" placeholder="Paste the email body or suspicious message here..."></textarea>
+            </div>
+
+            <div id="urlPreview" class="hidden mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                <p class="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2"><i class="fas fa-link mr-2"></i>URLs detected</p>
+                <div id="urlPreviewList" class="space-y-1"></div>
+            </div>
+
+            <div id="uploadArea" class="hidden">
+                <div id="dropZone" class="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 transition-colors">
+                    <input type="file" id="fileInput" class="hidden" accept=".txt,.eml,.msg,.pdf,.jpg,.jpeg,.png,.gif,.webp,.bmp">
+                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 dark:text-gray-500 mb-3"></i>
+                    <p class="text-gray-600 dark:text-gray-400 font-medium">Drag & drop or click to upload</p>
+                    <p class="text-gray-500 dark:text-gray-500 text-sm mt-1">.txt, .eml, .pdf, images</p>
+                    <p id="fileName" class="text-blue-600 dark:text-blue-400 font-medium mt-2 hidden"></p>
+                </div>
+            </div>
+
+            <div id="urlArea" class="hidden">
+                <div class="card p-6 border border-gray-300 dark:border-slate-600 rounded-xl">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4"><i class="fas fa-link mr-2 text-blue-600"></i>URL Security Check</h3>
+                    <div class="input-group mb-4">
+                        <i class="fas fa-globe"></i>
+                        <input type="text" id="urlInput" class="w-full py-4 px-4 border-2 border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white focus:border-blue-500 focus:outline-none" placeholder="Enter URL to analyze (e.g., https://example.com or http://192.168.1.1)">
+                    </div>
+                    <div id="urlAnalysisTable" class="hidden mt-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-100 dark:bg-slate-700 border-b-2 border-gray-300 dark:border-slate-600">
+                                    <tr>
+                                        <th class="text-left px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">URL</th>
+                                        <th class="text-center px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                                        <th class="text-center px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Risk Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="urlTableBody" class="divide-y divide-gray-200 dark:divide-slate-600">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <p id="noUrlsMessage" class="text-gray-500 dark:text-gray-400 text-center text-sm mt-4">No URLs analyzed yet</p>
+                </div>
+            </div>
+
+            <div id="error" class="hidden error-card p-4 mb-4 fade-in"></div>
+            <div id="success" class="hidden success-card p-4 mb-4 fade-in"></div>
+
+            <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                <button id="checkBtn" class="btn-primary flex-1">
+                    <i class="fas fa-shield-alt mr-2"></i>Analyze email
+                </button>
+                <button id="analyzeFileBtn" class="btn-primary flex-1 hidden">
+                    <i class="fas fa-file-upload mr-2"></i>Analyze file
+                </button>
+                <button id="checkUrlBtn" class="btn-primary flex-1 hidden">
+                    <i class="fas fa-link mr-2"></i>Check URL
+                </button>
+                <button id="sampleBtn" class="btn-secondary">Load sample</button>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="mb-20" id="features">
+            <h2 class="section-title text-center">Features</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="feature-card">
+                    <i class="fas fa-bolt feature-icon block"></i>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Real-time analysis</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Instant detection of phishing and suspicious patterns.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line feature-icon block"></i>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">High accuracy</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">AI-powered threat detection you can trust.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-lock feature-icon block"></i>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Secure & private</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Your data is processed securely and not stored.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How it works -->
+        <section class="mb-16" id="about">
+            <h2 class="section-title text-center">How it works</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
+                <div class="text-center p-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-blue-600 dark:text-blue-400 font-bold">1</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Input</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Paste or upload the email</p>
+                </div>
+                <div class="text-center p-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-blue-600 dark:text-blue-400 font-bold">2</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Analyze</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">AI scans for threats</p>
+                </div>
+                <div class="text-center p-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-blue-600 dark:text-blue-400 font-bold">3</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Detect</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Phishing indicators flagged</p>
+                </div>
+                <div class="text-center p-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-blue-600 dark:text-blue-400 font-bold">4</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Result</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Clear security assessment</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live URL Scanning Dashboard -->
+        <section class="mb-20" id="url-dashboard">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                <h2 class="section-title text-center mb-12">Live URL Scanning Dashboard</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Dashboard Stats -->
+                    <div class="card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Total Scanned</h3>
+                            <span class="text-3xl font-bold text-blue-600 dark:text-blue-400" id="dashTotalScanned">0</span>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm">URLs analyzed in this session</p>
+                        <div class="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                            <p class="text-xs text-gray-600 dark:text-gray-400">Last scanned: <span id="dashLastScan" class="font-semibold text-gray-900 dark:text-white">None</span></p>
+                        </div>
+                    </div>
+
+                    <div class="card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Safe URLs</h3>
+                            <span class="text-3xl font-bold text-green-600 dark:text-green-400" id="dashSafeCount">0</span>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm">Verified secure domains</p>
+                        <div class="mt-4 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div id="dashSafeBar" class="h-full bg-green-500 transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Suspicious</h3>
+                            <span class="text-3xl font-bold text-red-600 dark:text-red-400" id="dashSuspiciousCount">0</span>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm">Flagged for review</p>
+                        <div class="mt-4 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div id="dashSuspiciousBar" class="h-full bg-red-500 transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- URL History Table -->
+                <div class="card p-6 mt-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white"><i class="fas fa-history mr-2 text-blue-600"></i>Scan History</h3>
+                        <button id="dashClearHistory" class="text-sm px-3 py-1 rounded bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
+                            <i class="fas fa-trash mr-1"></i>Clear history
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-100 dark:bg-slate-700 border-b-2 border-gray-300 dark:border-slate-600">
+                                <tr>
+                                    <th class="text-left px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">URL</th>
+                                    <th class="text-center px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                                    <th class="text-center px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Risk Level</th>
+                                    <th class="text-center px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Time</th>
+                                    <th class="text-center px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashHistoryTable" class="divide-y divide-gray-200 dark:divide-slate-600">
+                            </tbody>
+                        </table>
+                    </div>
+                    <p id="dashNoHistory" class="text-gray-500 dark:text-gray-400 text-center text-sm mt-6 py-8">No scan history yet. Start scanning URLs above.</p>
+                </div>
+
+                <!-- Real-time Threat Feed -->
+                <div class="card p-6 mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6"><i class="fas fa-bell mr-2 text-amber-600"></i>Real-time Threat Alerts</h3>
+                    <div id="dashThreatFeed" class="space-y-3">
+                        <p class="text-gray-500 dark:text-gray-400 text-center text-sm py-6">No threats detected yet. URLs will appear here as they are scanned.</p>
+                    </div>
+                </div>
+
+                <!-- Growth Chart -->
+                <div class="card p-6 mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6"><i class="fas fa-chart-bar mr-2 text-purple-600"></i>Session Statistics</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/40 rounded-lg p-4 text-center">
+                            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="dashHttps">0</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">HTTPS URLs</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/40 rounded-lg p-4 text-center">
+                            <p class="text-2xl font-bold text-orange-600 dark:text-orange-400" id="dashHttp">0</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">HTTP URLs</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/40 rounded-lg p-4 text-center">
+                            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="dashAvgRisk">0%</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Risk Rate</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/40 rounded-lg p-4 text-center">
+                            <p class="text-2xl font-bold text-green-600 dark:text-green-400" id="dashAccuracy">100%</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Safety Score</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center">
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Phish Shield — AI-powered email security.</p>
+            <p class="text-gray-500 dark:text-gray-500 text-sm mt-2">© 2024 Phish Shield.</p>
+        </div>
+    </footer>
+
+    <script>
+        // URL Detection
+        const urlDetector = {
+            urlRegex: /(https?:\/\/[^\s]+)/gi,
+            suspiciousPatterns: [
+                /bit\.ly|tinyurl|shortened|short\.link/i,
+                /bit\.ly|goo\.gl|ow\.ly/i,
+                /account|verify|confirm|login|secure|update|urgent|click/i,
+                /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,
+                /[a-z0-9]{32,}/i
+            ],
+            extractUrls(text) {
+                const urls = [];
+                const matches = text.match(this.urlRegex);
+                if (matches) {
+                    matches.forEach(url => {
+                        if (!urls.includes(url)) {
+                            urls.push(url);
+                        }
+                    });
+                }
+                return urls;
+            },
+            isSuspicious(url) {
+                return this.suspiciousPatterns.some(pattern => pattern.test(url));
+            },
+            analyzeUrls(text) {
+                const urls = this.extractUrls(text);
+                return urls.map(url => ({
+                    url,
+                    suspicious: this.isSuspicious(url)
+                }));
+            }
+        };
+
+        // Alert Toast Manager
+        const alertManager = {
+            container: document.getElementById('alertContainer'),
+            show(message, type = 'info', duration = 3000) {
+                const alert = document.createElement('div');
+                alert.className = `alert-toast alert-${type}`;
+                
+                const icons = {
+                    success: 'fas fa-check-circle',
+                    error: 'fas fa-exclamation-circle',
+                    warning: 'fas fa-exclamation-triangle',
+                    info: 'fas fa-info-circle'
+                };
+                
+                alert.innerHTML = `
+                    <i class="${icons[type]}"></i>
+                    <span>${message}</span>
+                `;
+                
+                this.container.appendChild(alert);
+                alert.style.pointerEvents = 'auto';
+                
+                setTimeout(() => {
+                    alert.classList.add('removing');
+                    setTimeout(() => alert.remove(), 300);
+                }, duration);
+                
+                return alert;
+            },
+            success(message, duration = 2500) { this.show(message, 'success', duration); },
+            error(message, duration = 3500) { this.show(message, 'error', duration); },
+            warning(message, duration = 3000) { this.show(message, 'warning', duration); },
+            info(message, duration = 2500) { this.show(message, 'info', duration); }
+        };
+
+        // Sound effect generator
+        const soundManager = {
+            audioContext: null,
+            init() {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            beep(freq = 800, duration = 150, volume = 0.3) {
+                this.init();
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(this.audioContext.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(volume, this.audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration / 1000);
+                osc.start(this.audioContext.currentTime);
+                osc.stop(this.audioContext.currentTime + duration / 1000);
+            },
+            notify() { this.beep(600, 120, 0.2); }, // Short notification beep
+            success() { 
+                this.beep(800, 100, 0.2);
+                setTimeout(() => this.beep(1000, 100, 0.2), 120);
+            }, // Double beep for success
+            error() { this.beep(400, 200, 0.25); } // Low warning sound
+        };
+
+        (function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const body = document.body;
+            themeToggle.addEventListener('click', function() {
+                body.classList.toggle('dark-mode');
+                localStorage.setItem('darkMode', body.classList.contains('dark-mode'));
+            });
+            if (localStorage.getItem('darkMode') === 'true') body.classList.add('dark-mode');
+        })();
+
+        (function() {
+            const header = document.getElementById('header');
+            function onScroll() {
+                header.classList.toggle('header-scrolled', window.scrollY > 10);
+            }
+            window.addEventListener('scroll', onScroll);
+            onScroll();
+        })();
+
+        var sampleEmails = [
+            { title: "Phishing attempt", content: "URGENT: Your account has been compromised! Click this link immediately to secure your account: http://fake-security-update.com. Failure to act within 24 hours will result in permanent account closure." },
+            { title: "Legitimate email", content: "Hi John,\n\nJust wanted to follow up on our meeting last week. The quarterly report is ready for review. Please let me know if you have any questions.\n\nBest regards,\nSarah" }
+        ];
+
+        document.getElementById('sampleBtn').addEventListener('click', function() {
+            var sample = sampleEmails[Math.floor(Math.random() * sampleEmails.length)];
+            document.getElementById('email').value = sample.content;
+            soundManager.notify();
+            alertManager.info('Sample ' + sample.title.toLowerCase() + ' loaded');
+            var successDiv = document.getElementById('success');
+            successDiv.innerHTML = '<strong>' + sample.title + ' loaded.</strong> You can analyze it now.';
+            successDiv.classList.remove('hidden');
+            document.getElementById('error').classList.add('hidden');
+            setTimeout(function() { successDiv.classList.add('hidden'); }, 3000);
+        });
+
+        var tabPaste = document.getElementById('tabPaste');
+        var tabUpload = document.getElementById('tabUpload');
+        var tabUrl = document.getElementById('tabUrl');
+        var pasteArea = document.getElementById('pasteArea');
+        var uploadArea = document.getElementById('uploadArea');
+        var urlArea = document.getElementById('urlArea');
+        var checkBtn = document.getElementById('checkBtn');
+        var analyzeFileBtn = document.getElementById('analyzeFileBtn');
+        var checkUrlBtn = document.getElementById('checkUrlBtn');
+        var emailTextarea = document.getElementById('email');
+
+        // Real-time URL detection
+        function updateUrlPreview() {
+            const text = emailTextarea.value;
+            const urls = urlDetector.analyzeUrls(text);
+            const urlPreview = document.getElementById('urlPreview');
+            const urlPreviewList = document.getElementById('urlPreviewList');
+
+            if (urls.length > 0) {
+                urlPreview.classList.remove('hidden');
+                urlPreviewList.innerHTML = '';
+                urls.forEach(item => {
+                    const urlEl = document.createElement('div');
+                    urlEl.className = 'text-sm py-1 px-2 rounded bg-white dark:bg-slate-700 truncate';
+                    urlEl.style.color = item.suspicious ? '#dc2626' : '#059669';
+                    const icon = item.suspicious ? '⚠️' : '✓';
+                    urlEl.textContent = `${icon} ${item.url.substring(0, 60)}${item.url.length > 60 ? '...' : ''}`;
+                    urlEl.title = item.url;
+                    urlPreviewList.appendChild(urlEl);
+                });
+            } else {
+                urlPreview.classList.add('hidden');
+            }
+        }
+
+        emailTextarea.addEventListener('input', updateUrlPreview);
+        emailTextarea.addEventListener('paste', function() {
+            setTimeout(updateUrlPreview, 10);
+        });
+
+        tabPaste.addEventListener('click', function() {
+            tabPaste.classList.add('active');
+            tabUpload.classList.remove('active');
+            tabUrl.classList.remove('active');
+            pasteArea.classList.remove('hidden');
+            uploadArea.classList.add('hidden');
+            urlArea.classList.add('hidden');
+            checkBtn.classList.remove('hidden');
+            analyzeFileBtn.classList.add('hidden');
+            checkUrlBtn.classList.add('hidden');
+        });
+        tabUpload.addEventListener('click', function() {
+            tabUpload.classList.add('active');
+            tabPaste.classList.remove('active');
+            tabUrl.classList.remove('active');
+            uploadArea.classList.remove('hidden');
+            pasteArea.classList.add('hidden');
+            urlArea.classList.add('hidden');
+            checkBtn.classList.add('hidden');
+            analyzeFileBtn.classList.remove('hidden');
+            checkUrlBtn.classList.add('hidden');
+        });
+        tabUrl.addEventListener('click', function() {
+            tabUrl.classList.add('active');
+            tabPaste.classList.remove('active');
+            tabUpload.classList.remove('active');
+            urlArea.classList.remove('hidden');
+            pasteArea.classList.add('hidden');
+            uploadArea.classList.add('hidden');
+            checkBtn.classList.add('hidden');
+            analyzeFileBtn.classList.add('hidden');
+            checkUrlBtn.classList.remove('hidden');
+        });
+
+        var dropZone = document.getElementById('dropZone');
+        var fileInput = document.getElementById('fileInput');
+        var fileNameEl = document.getElementById('fileName');
+        var selectedFile = null;
+
+        dropZone.addEventListener('click', function() { fileInput.click(); });
+        dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('border-blue-500'); });
+        dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('border-blue-500'); });
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500');
+            if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', function(e) { if (e.target.files.length) handleFileSelect(e.target.files[0]); });
+
+        function handleFileSelect(file) {
+            var ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
+            var allowed = ['.txt', '.eml', '.msg', '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+            if (!allowed.includes(ext)) {
+                document.getElementById('error').innerHTML = 'Unsupported file type. Use: .txt, .eml, .pdf, .jpg, .png, .gif';
+                document.getElementById('error').classList.remove('hidden');
+                return;
+            }
+            selectedFile = file;
+            fileNameEl.textContent = file.name;
+            fileNameEl.classList.remove('hidden');
+            document.getElementById('error').classList.add('hidden');
+        }
+
+        document.getElementById('checkBtn').addEventListener('click', function() {
+            var userInput = document.getElementById('email').value.trim();
+            var errorDiv = document.getElementById('error');
+            var successDiv = document.getElementById('success');
+            if (!userInput) {
+                errorDiv.innerHTML = 'Please enter or paste some text to analyze.';
+                errorDiv.classList.remove('hidden');
+                successDiv.classList.add('hidden');
+                soundManager.error();
+                alertManager.error('Please enter text to analyze');
+                return;
+            }
+            soundManager.notify();
+            alertManager.info('Analyzing email...');
+            localStorage.setItem('emailToCheck', userInput);
+            window.location.href = '/checking';
+        });
+
+        document.getElementById('analyzeFileBtn').addEventListener('click', async function() {
+            var errorDiv = document.getElementById('error');
+            var successDiv = document.getElementById('success');
+            if (!selectedFile) {
+                errorDiv.innerHTML = 'Please select a file to analyze.';
+                errorDiv.classList.remove('hidden');
+                successDiv.classList.add('hidden');
+                soundManager.error();
+                alertManager.error('Please select a file');
+                return;
+            }
+            soundManager.notify();
+            alertManager.info('Analyzing file...', 2000);
+            var formData = new FormData();
+            formData.append('file', selectedFile);
+            errorDiv.classList.add('hidden');
+            successDiv.innerHTML = 'Analyzing…';
+            successDiv.classList.remove('hidden');
+            analyzeFileBtn.disabled = true;
+            try {
+                var response = await fetch('/predict/file', { method: 'POST', body: formData });
+                var result = await response.json();
+                if (!response.ok) throw new Error(result.detail || 'Analysis failed');
+                localStorage.setItem('analysisResult', JSON.stringify(result));
+                localStorage.setItem('emailToCheck', result.extracted_text || '');
+                window.location.href = '/checking';
+            } catch (err) {
+                errorDiv.innerHTML = err.message || 'File analysis failed.';
+                errorDiv.classList.remove('hidden');
+                successDiv.classList.add('hidden');
+                soundManager.error();
+                alertManager.error(err.message || 'File analysis failed');
+            } finally {
+                analyzeFileBtn.disabled = false;
+            }
+        });
+
+        // URL Checking functionality
+        var urlInput = document.getElementById('urlInput');
+        var checkUrlBtn = document.getElementById('checkUrlBtn');
+        var analysisTable = document.getElementById('urlAnalysisTable');
+        var tableBody = document.getElementById('urlTableBody');
+        var noUrlsMsg = document.getElementById('noUrlsMessage');
+        var analyzedurlList = [];
+
+        checkUrlBtn.addEventListener('click', function() {
+            var url = urlInput.value.trim();
+            if (!url) {
+                alertManager.error('Please enter a URL to check');
+                soundManager.error();
+                return;
+            }
+            
+            // Validate URL format
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'http://' + url;
+            }
+
+            // Analyze the URL using the URL detector
+            var urlAnalysis = urlDetector.analyzeUrls(url);
+            if (urlAnalysis.length === 0) {
+                alertManager.warning('Could not parse the URL. Please check the format.');
+                return;
+            }
+
+            var urlData = urlAnalysis[0];
+            soundManager.notify();
+
+            // Add to analysis list
+            analyzedurlList.unshift({
+                url: urlData.url,
+                suspicious: urlData.suspicious,
+                riskLevel: urlData.suspicious ? 'High' : 'Low',
+                timestamp: new Date().toLocaleTimeString()
+            });
+
+            // Update table
+            updateUrlTable();
+            
+            // Show alert
+            if (urlData.suspicious) {
+                alertManager.warning('⚠️ This URL shows suspicious characteristics', 3000);
+                soundManager.warning();
+            } else {
+                alertManager.success('✓ URL appears safe', 2500);
+                soundManager.success();
+            }
+
+            // Clear input
+            urlInput.value = '';
+            urlInput.focus();
+        });
+
+        function updateUrlTable() {
+            if (analyzedurlList.length === 0) {
+                analysisTable.classList.add('hidden');
+                noUrlsMsg.classList.remove('hidden');
+                return;
+            }
+
+            noUrlsMsg.classList.add('hidden');
+            analysisTable.classList.remove('hidden');
+            tableBody.innerHTML = '';
+
+            analyzedurlList.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const riskColor = item.suspicious ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-green-600 dark:text-green-400 font-semibold';
+                const riskIcon = item.suspicious ? '🔴' : '🟢';
+                const badge = item.suspicious 
+                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">⚠️ Suspicious</span>'
+                    : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">✓ Safe</span>';
+
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 truncate max-w-xs" title="${item.url}">${item.url.substring(0, 50)}${item.url.length > 50 ? '...' : ''}</td>
+                    <td class="px-4 py-3 text-center">${badge}</td>
+                    <td class="px-4 py-3 text-center"><span class="${riskColor}">${riskIcon} ${item.riskLevel}</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Allow Enter key to submit URL
+        urlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkUrlBtn.click();
+        });
+
+        // ===== LIVE URL SCANNING DASHBOARD =====
+        const dashboardManager = {
+            stats: {
+                totalScanned: 0,
+                safeCount: 0,
+                suspiciousCount: 0,
+                httpsCount: 0,
+                httpCount: 0,
+                history: [],
+                threatAlerts: []
+            },
+
+            init() {
+                this.loadFromStorage();
+                this.setupEventListeners();
+                this.updateDashboard();
+            },
+
+            setupEventListeners() {
+                document.getElementById('dashClearHistory').addEventListener('click', () => {
+                    this.clearHistory();
+                });
+
+                // Hook into the existing URL check functionality
+                const originalCheckUrl = checkUrlBtn.onclick;
+                checkUrlBtn.addEventListener('click', () => {
+                    setTimeout(() => this.captureAndUpdateDashboard(), 100);
+                });
+            },
+
+            captureAndUpdateDashboard() {
+                // Get the most recent URL from analyzedurlList
+                if (analyzedurlList.length > 0) {
+                    const latestUrl = analyzedurlList[0];
+                    this.addScan(latestUrl);
+                }
+            },
+
+            addScan(urlData) {
+                const scanEntry = {
+                    url: urlData.url,
+                    domain: new URL(urlData.url.startsWith('http') ? urlData.url : 'http://' + urlData.url).hostname,
+                    suspicious: urlData.suspicious,
+                    riskLevel: urlData.suspicious ? 'High' : 'Low',
+                    timestamp: new Date(),
+                    timeString: new Date().toLocaleTimeString(),
+                    protocol: urlData.url.startsWith('https') ? 'HTTPS' : 'HTTP'
+                };
+
+                this.stats.totalScanned++;
+                if (scanEntry.suspicious) {
+                    this.stats.suspiciousCount++;
+                    this.addThreatAlert(scanEntry);
+                } else {
+                    this.stats.safeCount++;
+                }
+                
+                if (scanEntry.protocol === 'HTTPS') {
+                    this.stats.httpsCount++;
+                } else {
+                    this.stats.httpCount++;
+                }
+
+                this.stats.history.unshift(scanEntry);
+                if (this.stats.history.length > 50) {
+                    this.stats.history.pop();
+                }
+
+                this.saveToStorage();
+                this.updateDashboard();
+            },
+
+            addThreatAlert(scanEntry) {
+                const alert = {
+                    url: scanEntry.url,
+                    domain: scanEntry.domain,
+                    timestamp: new Date(),
+                    timeString: new Date().toLocaleTimeString(),
+                    reason: 'Suspicious patterns detected'
+                };
+
+                this.stats.threatAlerts.unshift(alert);
+                if (this.stats.threatAlerts.length > 10) {
+                    this.stats.threatAlerts.pop();
+                }
+            },
+
+            updateDashboard() {
+                // Update main stats
+                document.getElementById('dashTotalScanned').textContent = this.stats.totalScanned;
+                document.getElementById('dashSafeCount').textContent = this.stats.safeCount;
+                document.getElementById('dashSuspiciousCount').textContent = this.stats.suspiciousCount;
+                document.getElementById('dashLastScan').textContent = 
+                    this.stats.history.length > 0 ? this.stats.history[0].timeString : 'None';
+
+                // Update bars
+                const total = this.stats.totalScanned || 1;
+                const safePercent = (this.stats.safeCount / total) * 100;
+                const suspiciousPercent = (this.stats.suspiciousCount / total) * 100;
+                document.getElementById('dashSafeBar').style.width = safePercent + '%';
+                document.getElementById('dashSuspiciousBar').style.width = suspiciousPercent + '%';
+
+                // Update protocol stats
+                document.getElementById('dashHttps').textContent = this.stats.httpsCount;
+                document.getElementById('dashHttp').textContent = this.stats.httpCount;
+
+                // Calculate and update risk rate
+                const riskRate = this.stats.totalScanned > 0 
+                    ? Math.round((this.stats.suspiciousCount / this.stats.totalScanned) * 100)
+                    : 0;
+                document.getElementById('dashAvgRisk').textContent = riskRate + '%';
+
+                // Update safety score
+                const safetyScore = 100 - riskRate;
+                document.getElementById('dashAccuracy').textContent = safetyScore + '%';
+
+                // Update history table
+                this.updateHistoryTable();
+
+                // Update threat feed
+                this.updateThreatFeed();
+            },
+
+            updateHistoryTable() {
+                const table = document.getElementById('dashHistoryTable');
+                const noHistory = document.getElementById('dashNoHistory');
+
+                if (this.stats.history.length === 0) {
+                    table.innerHTML = '';
+                    noHistory.classList.remove('hidden');
+                    return;
+                }
+
+                noHistory.classList.add('hidden');
+                table.innerHTML = this.stats.history.slice(0, 15).map((entry, idx) => {
+                    const badge = entry.suspicious 
+                        ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">⚠️ Suspicious</span>'
+                        : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">✓ Safe</span>';
+                    
+                    const riskColor = entry.suspicious ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400';
+                    const riskIcon = entry.suspicious ? '🔴' : '🟢';
+                    const protocolIcon = entry.protocol === 'HTTPS' ? '🔒' : '🔓';
+
+                    return `
+                        <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                            <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                <span class="font-mono text-xs">${protocolIcon}</span>
+                                <span class="truncate ml-2 max-w-xs inline-block" title="${entry.url}">${entry.domain}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">${badge}</td>
+                            <td class="px-4 py-3 text-center"><span class="${riskColor}">${riskIcon} ${entry.riskLevel}</span></td>
+                            <td class="px-4 py-3 text-center text-xs text-gray-500 dark:text-gray-400">${entry.timeString}</td>
+                            <td class="px-4 py-3 text-center">
+                                <button class="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors copy-url" data-url="${entry.url}" title="Copy URL">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                // Add copy to clipboard functionality
+                document.querySelectorAll('.copy-url').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const url = this.getAttribute('data-url');
+                        navigator.clipboard.writeText(url).then(() => {
+                            alertManager.success('✓ URL copied to clipboard', 2000);
+                            soundManager.success();
+                        }).catch(() => {
+                            alertManager.error('Failed to copy URL', 2000);
+                        });
+                    });
+                });
+            },
+
+            updateThreatFeed() {
+                const feed = document.getElementById('dashThreatFeed');
+
+                if (this.stats.threatAlerts.length === 0) {
+                    feed.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center text-sm py-6">No threats detected yet. URLs will appear here as they are scanned.</p>';
+                    return;
+                }
+
+                feed.innerHTML = this.stats.threatAlerts.slice(0, 8).map((alert) => {
+                    return `
+                        <div class="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-l-4 border-red-500 p-4 rounded">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="font-semibold text-red-700 dark:text-red-300 flex items-center">
+                                        <i class="fas fa-exclamation-circle mr-2"></i>${alert.domain}
+                                    </p>
+                                    <p class="text-sm text-red-600 dark:text-red-400 mt-1">⚠️ ${alert.reason}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">${alert.timeString}</p>
+                                </div>
+                                <button class="ml-2 px-2 py-1 rounded text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors dismiss-threat" data-index="0">
+                                    Dismiss
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add dismiss functionality
+                document.querySelectorAll('.dismiss-threat').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        this.parentElement.parentElement.style.opacity = '0.5';
+                        this.parentElement.parentElement.style.textDecoration = 'line-through';
+                    });
+                });
+            },
+
+            clearHistory() {
+                if (confirm('Clear all scan history? This action cannot be undone.')) {
+                    this.stats.history = [];
+                    this.stats.threatAlerts = [];
+                    this.stats.totalScanned = 0;
+                    this.stats.safeCount = 0;
+                    this.stats.suspiciousCount = 0;
+                    this.stats.httpsCount = 0;
+                    this.stats.httpCount = 0;
+                    this.saveToStorage();
+                    this.updateDashboard();
+                    alertManager.success('✓ Scan history cleared', 2500);
+                    soundManager.success();
+                }
+            },
+
+            saveToStorage() {
+                try {
+                    localStorage.setItem('dashboardStats', JSON.stringify(this.stats));
+                } catch (e) {
+                    console.warn('Failed to save dashboard stats:', e);
+                }
+            },
+
+            loadFromStorage() {
+                try {
+                    const saved = localStorage.getItem('dashboardStats');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        this.stats = {
+                            ...this.stats,
+                            ...data,
+                            history: (data.history || []).map(h => ({
+                                ...h,
+                                timestamp: new Date(h.timestamp)
+                            })),
+                            threatAlerts: (data.threatAlerts || []).map(a => ({
+                                ...a,
+                                timestamp: new Date(a.timestamp)
+                            }))
+                        };
+                    }
+                } catch (e) {
+                    console.warn('Failed to load dashboard stats:', e);
+                }
+            }
+        };
+
+        // Initialize dashboard
+        dashboardManager.init();
+    </script>
+</body>
+</html>
